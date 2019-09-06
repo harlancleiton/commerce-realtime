@@ -33,6 +33,7 @@
     "@adonisjs/vow": "^1.0.17",
     "@adonisjs/websocket": "^1.0.12",
     "adonis-acl": "^1.1.1",
+    "adonis-bumblebee": "^2.0.0",
     "pg": "^7.12.1"
   },
   "devDependencies": {
