@@ -31,7 +31,9 @@
     "@adonisjs/vow": "^1.0.17",
     "pg": "^7.12.1"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "typescript": "^3.6.2"
+  },
   "autoload": {
     "App": "./app"
   }
