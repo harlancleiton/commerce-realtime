@@ -18,7 +18,10 @@ class OrderItemSchema extends Schema {
         .unsigned()
         .notNullable()
         .defaultTo(1)
-      table.decimal('subtotal', 12, 2).notNullable()
+      table
+        .decimal('subtotal', 12, 2)
+        .notNullable()
+        .defaultTo(0.0)
       table.timestamps()
     })
   }
