@@ -13,11 +13,11 @@ class CouponProductSchema extends Schema {
         .references('id')
         .inTable('coupons')
         .onDelete('CASCADE')
-      table.integer('user_id').unsigned()
+      table.integer('product_id').unsigned()
       table
         .foreign('product_id')
         .references('id')
-        .inTable('product')
+        .inTable('products')
         .onDelete('CASCADE')
       table.timestamps()
     })
