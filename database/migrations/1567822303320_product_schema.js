@@ -9,13 +9,13 @@ class ProductSchema extends Schema {
       table.increments()
       table.string('name', 50).notNullable()
       table.text('description').notNullable()
+      table.decimal('price', 12, 2)
       table.integer('image_id').unsigned()
       table
         .foreign('image_id')
         .references('id')
         .inTable('images')
         .onDelete('CASCADE')
-      table.decimal('price', 12, 2)
       table.timestamps()
     })
 
