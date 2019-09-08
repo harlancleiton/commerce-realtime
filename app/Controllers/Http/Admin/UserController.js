@@ -71,7 +71,20 @@ class UserController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async update({ params, request, response }) {}
+  async update({ params, request, response }) {
+    const { id } = params
+    const user = await User.findOrFail(id)
+    const { name, surname, email, password, image } = request.all()
+    user.merge({
+      name,
+      surname,
+      email,
+      password,
+      image_id: image
+    })
+    await user.save()
+    return response.send({ data: user })
+  }
 
   /**
    * Delete a user with id.
@@ -81,7 +94,18 @@ class UserController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async destroy({ params, request, response }) {}
+  async destroy({ params, request, response }) {
+    const { id } = params
+    const user = await User.findOrFail(id)
+    try {
+      user.delete()
+      return response.status(204).send({})
+    } catch (error) {
+      response
+        .status(500)
+        .send({ error: { message: 'Erro ao deletar usuário' } })
+    }
+  }
 }
 
 module.exports = UserController
