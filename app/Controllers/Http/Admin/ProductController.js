@@ -3,6 +3,8 @@
 /** @typedef {import('@adonisjs/framework/src/Request')} Request */
 /** @typedef {import('@adonisjs/framework/src/Response')} Response */
 /** @typedef {import('@adonisjs/framework/src/View')} View */
+/** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
+const Product = use('App/Models/Product')
 
 /**
  * Resourceful controller for interacting with products
@@ -15,8 +17,16 @@ class ProductController {
    * @param {object} ctx
    * @param {Request} ctx.request
    * @param {Response} ctx.response
+   * * @param {Object} ctx.pagination
    */
-  async index({ request, response }) {}
+  async index({ request, response, pagination }) {
+    const name = request.input('name')
+    const query = Product.query()
+    // ILIKI, postgres case sensitive
+    if (name) query.where('name', 'ILIKE', `%${name}%`)
+    const products = await query.paginate(pagination.page, pagination.limit)
+    return response.send({ data: products })
+  }
 
   /**
    * Create/save a new product.
