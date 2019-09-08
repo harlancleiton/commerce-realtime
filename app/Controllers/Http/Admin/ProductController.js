@@ -36,7 +36,16 @@ class ProductController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async store({ request, response }) {}
+  async store({ request, response }) {
+    const { name, description, price, image } = request.all()
+    const product = await Product.create({
+      name,
+      description,
+      price,
+      image_id: image
+    })
+    return response.status(201).send({ data: product })
+  }
 
   /**
    * Update product details.
