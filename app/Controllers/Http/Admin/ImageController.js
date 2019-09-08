@@ -3,6 +3,11 @@
 /** @typedef {import('@adonisjs/framework/src/Request')} Request */
 /** @typedef {import('@adonisjs/framework/src/Response')} Response */
 /** @typedef {import('@adonisjs/framework/src/View')} View */
+/** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
+const Image = use('App/Models/Image')
+const { manageSingleUpload, manageMultipleUpload } = use('App/Helpers')
+const Helpers = use('Helpers')
+const fs = use('fs')
 
 /**
  * Resourceful controller for interacting with images
@@ -15,8 +20,13 @@ class ImageController {
    * @param {object} ctx
    * @param {Request} ctx.request
    * @param {Response} ctx.response
+   * @param {Object} ctx.pagination
    */
-  async index ({ request, response }) {
+  async index({ request, response, pagination }) {
+    const images = await Image.query()
+      .ordrBy('id', 'DESC')
+      .paginate(pagination.page, pagination.limit)
+    return response.send({ data: images })
   }
 
   /**
@@ -27,7 +37,60 @@ class ImageController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async store ({ request, response }) {
+  async store({ request, response }) {
+    try {
+      const fileJar = request.file('images', { types: ['image'], size: '3mb' })
+      const images = []
+      if (!fileJar.files) {
+        const file = await manageSingleUpload(fileJar)
+        if (file.moved()) {
+          const image = await Image.create({
+            path: file.fileName,
+            size: file.size,
+            original_name: file.clientName,
+            extension: file.subtype
+          })
+          images.push(image)
+          return response.status(201).send({ success: images, errors: {} })
+        } else
+          return response.status(400).send({
+            error: { message: 'Não foi possível enviar a imagem no momento' }
+          })
+      }
+      let files = await manageMultipleUpload(fileJar)
+      await Promise.all(
+        files.successes.map(async file => {
+          const image = await Image.create({
+            path: file.fileName,
+            size: file.size,
+            original_name: file.clientName,
+            extension: file.subtype
+          })
+          images.push(image)
+        })
+      )
+      return response
+        .status(201)
+        .send({ success: images, errors: files.errors })
+    } catch (error) {
+      return response.status(400).send({
+        error: { message: 'Não foi possível processar sua solicitação' }
+      })
+    }
+  }
+
+  /**
+   * Display a single image.
+   * GET images/:id
+   *
+   * @param {object} ctx
+   * @param {Request} ctx.request
+   * @param {Response} ctx.response
+   */
+  async show({ params, request, response }) {
+    const { id } = params
+    const image = await Image.findOrFail(id)
+    return response.send({ data: image })
   }
 
   /**
@@ -38,7 +101,18 @@ class ImageController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async update ({ params, request, response }) {
+  async update({ params, request, response }) {
+    const { id } = params
+    const image = await Image.findOrFail(id)
+    try {
+      image.merge(request.only(['original_name']))
+      await image.save()
+      return response.status(200).send({ data: image })
+    } catch (error) {
+      return response
+        .status(400)
+        .send({ error: { message: 'Erro ao atualizar imagem' } })
+    }
   }
 
   /**
@@ -49,7 +123,20 @@ class ImageController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async destroy ({ params, request, response }) {
+  async destroy({ params, request, response }) {
+    const { id } = params
+    const image = Image.findOrFail(id)
+    try {
+      let filepath = Helpers.publicPath(`uploads/${image.path}`)
+      await fs.unlink(filepath, err=>{
+        if(!err) await image.delete()
+      })
+      return response.status(204).send({})
+    } catch (error) {
+      return response
+        .status(400)
+        .send({ error: { message: 'Erro ao excluir imagem' } })
+    }
   }
 }
 
