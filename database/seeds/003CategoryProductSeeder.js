@@ -18,7 +18,9 @@ class CategoryProductSeeder {
     const categories = await Factory.model('App/Models/Category').createMany(10)
     await Promise.all(
       await categories.map(async category => {
-        const products = await Factory.model('App/Models/Product').createMany(5)
+        const products = await Factory.model('App/Models/Product').createMany(
+          30
+        )
         await Promise.all(
           products.map(
             async product => await product.categories().attach([category.id])
