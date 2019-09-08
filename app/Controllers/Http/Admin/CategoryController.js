@@ -3,6 +3,8 @@
 /** @typedef {import('@adonisjs/framework/src/Request')} Request */
 /** @typedef {import('@adonisjs/framework/src/Response')} Response */
 /** @typedef {import('@adonisjs/framework/src/View')} View */
+/** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
+const Category = use('App/Models/Category')
 
 /**
  * Resourceful controller for interacting with categories
@@ -15,8 +17,15 @@ class CategoryController {
    * @param {object} ctx
    * @param {Request} ctx.request
    * @param {Response} ctx.response
+   * @param {Object} ctx.pagination
    */
-  async index({ request, response }) {}
+  async index({ request, response, pagination }) {
+    const categories = await Category.query().paginate(
+      pagination.page,
+      pagination.limit
+    )
+    return response.send({ data: categories })
+  }
 
   /**
    * Create/save a new category.
