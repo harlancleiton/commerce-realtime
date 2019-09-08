@@ -1,7 +1,7 @@
 'use strict'
 
 const crypto = use('crypto')
-const crypto = use('Helpers')
+const Helpers = use('Helpers')
 
 /**
  * Generate random string
@@ -13,7 +13,7 @@ const generateHash = async (length = 10) => {
   let hash = ''
   if (length > 0) {
     const bytes = await crypto.randomBytes(length)
-    const buffer = new Buffer(bytes)
+    const buffer = Buffer.from(bytes)
     hash += buffer
       .toString('base64')
       .replace(/[^a-zA-Z0-9]/g, '')
