@@ -53,6 +53,21 @@ class CategoryController {
   }
 
   /**
+   * Display a single coupon.
+   * GET categories/:id
+   *
+   * @param {object} ctx
+   * @param {Request} ctx.request
+   * @param {Response} ctx.response
+   * @param {View} ctx.view
+   */
+  async show({ params, request, response, view }) {
+    const { id } = params
+    const category = await Category.findOrFail(id)
+    return response.sent({ data: category })
+  }
+
+  /**
    * Update category details.
    * PUT or PATCH categories/:id
    *
@@ -70,7 +85,12 @@ class CategoryController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async destroy({ params, request, response }) {}
+  async destroy({ params, request, response }) {
+    const { id } = params
+    const category = await Category.findOrFail(id)
+    await category.delete()
+    return response.status(204).send({})
+  }
 }
 
 module.exports = CategoryController
