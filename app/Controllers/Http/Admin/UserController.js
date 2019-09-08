@@ -41,13 +41,14 @@ class UserController {
    */
   async store({ request, response }) {
     const { name, surname, email, password, image } = request.all()
-    const user = User.create({
+    const user = await User.create({
       name,
       surname,
       email,
       password,
       image_id: image
     })
+    return response.status(201).send({ data: user })
   }
 
   /**
