@@ -39,7 +39,29 @@ class UserController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async store({ request, response }) {}
+  async store({ request, response }) {
+    const { name, surname, email, password, image } = request.all()
+    const user = User.create({
+      name,
+      surname,
+      email,
+      password,
+      image_id: image
+    })
+  }
+
+  /**
+   * Display a single user.
+   * GET users/:id
+   *
+   * @param {object} ctx
+   * @param {Response} ctx.response
+   */
+  async show({ params, response }) {
+    const { id } = params
+    const user = await User.findOrFail(id)
+    return response.send({ data: user })
+  }
 
   /**
    * Update user details.
