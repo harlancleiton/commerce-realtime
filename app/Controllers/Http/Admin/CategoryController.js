@@ -64,7 +64,7 @@ class CategoryController {
   async show({ params, request, response, view }) {
     const { id } = params
     const category = await Category.findOrFail(id)
-    return response.sent({ data: category })
+    return response.send({ data: category })
   }
 
   /**
@@ -76,7 +76,7 @@ class CategoryController {
    * @param {Response} ctx.response
    */
   async update({ params, request, response }) {
-    const { id } = params.id
+    const { id } = params
     const category = await Category.findOrFail(id)
     const { title, description, image } = request.all()
     category.merge({
