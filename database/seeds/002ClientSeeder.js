@@ -27,7 +27,7 @@ class ClientSeeder {
     const admin = await User.create({
       name: 'Harlan',
       surname: 'Cleiton',
-      email: 'harlancleiton@gmmail.com',
+      email: 'harlancleiton@gmail.com',
       password: 'password'
     })
     const adminRole = await Role.findBy('slug', 'admin')

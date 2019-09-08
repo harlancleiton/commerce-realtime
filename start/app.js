@@ -52,6 +52,7 @@ const aceProviders = [
 |
 */
 const aliases = {
+  User: 'App/Models/User',
   Role: 'Adonis/Acl/Role',
   Permission: 'Adonis/Acl/Permission'
 }
