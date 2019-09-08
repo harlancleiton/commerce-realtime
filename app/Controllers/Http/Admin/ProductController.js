@@ -2,6 +2,7 @@
 
 /** @typedef {import('@adonisjs/framework/src/Request')} Request */
 /** @typedef {import('@adonisjs/framework/src/Response')} Response */
+/** @typedef {import('@adonisjs/framework/src/Response')} Response */
 /** @typedef {import('@adonisjs/framework/src/View')} View */
 /** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
 const Product = use('App/Models/Product')
@@ -37,14 +38,33 @@ class ProductController {
    * @param {Response} ctx.response
    */
   async store({ request, response }) {
-    const { name, description, price, image } = request.all()
-    const product = await Product.create({
-      name,
-      description,
-      price,
-      image_id: image
-    })
-    return response.status(201).send({ data: product })
+    try {
+      const { name, description, price, image } = request.all()
+      const product = await Product.create({
+        name,
+        description,
+        price,
+        image_id: image
+      })
+      return response.status(201).send({ data: product })
+    } catch (error) {
+      return response
+        .status(400)
+        .send({ error: { message: 'Não foi possível atualizar este produto' } })
+    }
+  }
+
+  /**
+   * Display a single product.
+   * GET products/:id
+   *
+   * @param {object} ctx
+   * @param {Response} ctx.response
+   */
+  async show({ params, response }) {
+    const { id } = params
+    const product = await Product.findOrFail(id)
+    return response.send({ data: product })
   }
 
   /**
@@ -55,7 +75,20 @@ class ProductController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async update({ params, request, response }) {}
+  async update({ params, request, response }) {
+    const { id } = params
+    const product = await Product.findOrFail(id)
+    try {
+      const { name, description, price, image } = request.all()
+      product.merge({ name, description, price, image_id: image })
+      await product.save()
+      return response.send({ data: product })
+    } catch (error) {
+      return response
+        .status(400)
+        .send({ error: { message: 'Não foi possível atualizar este produto' } })
+    }
+  }
 
   /**
    * Delete a product with id.
@@ -65,7 +98,18 @@ class ProductController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async destroy({ params, request, response }) {}
+  async destroy({ params, request, response }) {
+    const { id } = params
+    const product = await Product.findOrFail(id)
+    try {
+      await product.delete()
+      return response.status(204).send({})
+    } catch (error) {
+      return response
+        .status(500)
+        .send({ error: { message: 'Não foi possível deletar este produto' } })
+    }
+  }
 }
 
 module.exports = ProductController

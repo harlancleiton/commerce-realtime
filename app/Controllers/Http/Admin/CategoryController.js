@@ -53,15 +53,14 @@ class CategoryController {
   }
 
   /**
-   * Display a single coupon.
+   * Display a single category.
    * GET categories/:id
    *
    * @param {object} ctx
    * @param {Request} ctx.request
    * @param {Response} ctx.response
-   * @param {View} ctx.view
    */
-  async show({ params, request, response, view }) {
+  async show({ params, request, response }) {
     const { id } = params
     const category = await Category.findOrFail(id)
     return response.send({ data: category })
