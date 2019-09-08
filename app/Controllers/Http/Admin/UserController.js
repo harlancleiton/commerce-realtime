@@ -3,6 +3,8 @@
 /** @typedef {import('@adonisjs/framework/src/Request')} Request */
 /** @typedef {import('@adonisjs/framework/src/Response')} Response */
 /** @typedef {import('@adonisjs/framework/src/View')} View */
+/** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
+const User = use('App/Models/User')
 
 /**
  * Resourceful controller for interacting with users
@@ -15,9 +17,19 @@ class UserController {
    * @param {object} ctx
    * @param {Request} ctx.request
    * @param {Response} ctx.response
-   * @param {View} ctx.view
+   * @param {Object} ctx.pagination
    */
-  async index({ request, response, view }) {}
+  async index({ request, response, pagination }) {
+    const { name } = request.all()
+    const query = User.query()
+    if (name) {
+      query.where('name', 'ILIKE', `%${name}%`)
+      query.orWhere('surname', 'ILIKE', `%${name}%`)
+      query.orWhere('email', 'ILIKE', `%${name}%`)
+    }
+    const users = await query.paginate(pagination.page, pagination.limit)
+    return response.send({ data: users })
+  }
 
   /**
    * Create/save a new user.
