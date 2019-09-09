@@ -6,6 +6,7 @@
 /** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
 const Coupon = use('App/Models/Coupon')
 const Database = use('Database')
+const Service = use('App/Services/Coupon/CouponService')
 
 /**
  * Resourceful controller for interacting with coupons
@@ -36,7 +37,44 @@ class CouponController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async store({ request, response }) {}
+  async store({ request, response }) {
+    const canUseFor = { client: false, product: false }
+    const trx = await Database.beginTransaction()
+    try {
+      const data = request.only([
+        'code',
+        'discount',
+        'type',
+        'valid_from',
+        'valid_until',
+        'quantity',
+        'recursive'
+      ])
+      const coupon = await Coupon.create(data, trx)
+      const { users, products } = request.only(['users', 'products'])
+      const service = new Service(coupon, trx)
+      if (users && users.length > 0) {
+        await service.syncUsers(users)
+        canUseFor.client = true
+      }
+      if (products && products.length > 0) {
+        await service.syncProducts(products)
+        canUseFor.product = true
+      }
+      if (canUseFor.product && canUseFor.client)
+        coupon.can_use_for = 'PRODUCT_CLIENT'
+      else if (canUseFor.client) coupon.can_use_for = 'CLIENT'
+      else if (canUseFor.product) coupon.can_use_for = 'PRODUCT'
+      else coupon.can_use_for = 'ALL'
+      await coupon.save(trx)
+      return response.status(201).send({ data: coupon })
+    } catch (error) {
+      await trx.rollback()
+      return response.status(400).send({
+        error: { message: 'Não foi possível criar o cupon de desconto' }
+      })
+    }
+  }
 
   /**
    * Display a single coupon.
@@ -60,7 +98,47 @@ class CouponController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async update({ params, request, response }) {}
+  async update({ params, request, response }) {
+    const { id } = params
+    const trx = await Database.beginTransaction()
+    const coupon = await Coupon.findOrFail(id)
+    const canUseFor = { client: false, product: false }
+    try {
+      const data = request.only([
+        'code',
+        'discount',
+        'type',
+        'valid_from',
+        'valid_until',
+        'quantity',
+        'recursive'
+      ])
+      coupon.merge(data)
+      const { users, products } = request.only(['users', 'products'])
+      const service = new Service(coupon, trx)
+      if (users && users.length > 0) {
+        await service.syncUsers(users)
+        canUseFor.client = true
+      }
+      if (products && products.length > 0) {
+        await service.syncProducts(products)
+        canUseFor.product = true
+      }
+      if (canUseFor.product && canUseFor.client)
+        coupon.can_use_for = 'PRODUCT_CLIENT'
+      else if (canUseFor.client) coupon.can_use_for = 'CLIENT'
+      else if (canUseFor.product) coupon.can_use_for = 'PRODUCT'
+      else coupon.can_use_for = 'ALL'
+      await coupon.save(trx)
+      await trx.commit()
+      return response.status(200).send({ data: coupon })
+    } catch (error) {
+      await trx.rollback()
+      return response.status(400).send({
+        error: { message: 'Não foi possível atualizar o cupon de desconto' }
+      })
+    }
+  }
 
   /**
    * Delete a coupon with id.
