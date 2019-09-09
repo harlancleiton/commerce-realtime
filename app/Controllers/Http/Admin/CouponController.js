@@ -86,7 +86,7 @@ class CouponController {
    */
   async show({ params, request, response }) {
     const { id } = params
-    const coupon = await Coupons.findOrFail(id)
+    const coupon = await Coupon.findOrFail(id)
     return response.send({ data: coupon })
   }
 

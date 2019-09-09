@@ -5,6 +5,7 @@
 /** @typedef {import('@adonisjs/framework/src/View')} View */
 /** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
 const Order = use('App/Models/Order')
+const Database = use('Database')
 
 /**
  * Resourceful controller for interacting with orders
@@ -42,6 +43,20 @@ class OrderController {
   async store({ request, response }) {}
 
   /**
+   * Display a single order.
+   * GET orders/:id
+   *
+   * @param {object} ctx
+   * @param {Request} ctx.request
+   * @param {Response} ctx.response
+   */
+  async show({ params, response }) {
+    const { id } = params
+    const order = await Order.findOrFail(id)
+    return response.send({ data: order })
+  }
+
+  /**
    * Update order details.
    * PUT or PATCH orders/:id
    *
@@ -56,10 +71,23 @@ class OrderController {
    * DELETE orders/:id
    *
    * @param {object} ctx
-   * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async destroy({ params, request, response }) {}
+  async destroy({ params: { id }, response }) {
+    const order = await Order.findOrFail(id)
+    const trx = Database.beginTransaction()
+    try {
+      await orders.items().delete(trx)
+      await orders.coupons().delete(trx)
+      await trx.commit()
+      return response.status(204).send({})
+    } catch (error) {
+      trx.rollback()
+      return response
+        .status(400)
+        .send({ error: { message: 'Não foi possível excluir o pedido' } })
+    }
+  }
 }
 
 module.exports = OrderController
