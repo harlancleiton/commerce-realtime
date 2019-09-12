@@ -15,7 +15,8 @@ class AuthRegister {
       'name.required': 'Nome não informado',
       'surname.required': 'Sobrenome não informado',
       'email.required': 'Email não informado',
-      'email.email': 'Email inválido'
+      'email.email': 'Email inválido',
+      'email.unique': 'Email em uso'
     }
   }
 
