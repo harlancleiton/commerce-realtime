@@ -6,6 +6,7 @@
 /** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
 const Order = use('App/Models/Order')
 const Database = use('Database')
+const Service = use('App/Services/Order/OrderService')
 
 /**
  * Resourceful controller for interacting with orders
@@ -40,7 +41,22 @@ class OrderController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  // async store({ request, response }) {}
+  async store({ request, response }) {
+    const trx = await Database.beginTransaction()
+    try {
+      const { user, items, status } = request.all()
+      const order = await Order.create({ user_id: user, status }, trx)
+      const service = new Service(order, trx)
+      if (items && items.length > 0) await service.syncItems(items)
+      await trx.commit()
+      return response.status(201).send({ data: order })
+    } catch (error) {
+      trx.rollback()
+      return response
+        .status(500)
+        .send({ errors: { message: 'Não foi possível registar o pedido' } })
+    }
+  }
 
   /**
    * Display a single order.
@@ -64,7 +80,24 @@ class OrderController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  // async update({ params, request, response }) {}
+  async update({ params: { id }, request, response }) {
+    const order = Order.findOrFail(id)
+    const trx = Database.beginTransaction()
+    try {
+      const { user, items, status } = request.all()
+      order.merge({ user_id: user, items, status })
+      const service = new Service(order, trx)
+      await service.updateItems(items)
+      await order.save(trx)
+      await trx.commit()
+      return response.send({ data: order })
+    } catch (error) {
+      trx.rollback()
+      return response
+        .status(500)
+        .send({ errors: [{ message: 'Não foi possível atualizar o pedido' }] })
+    }
+  }
 
   /**
    * Delete a order with id.
