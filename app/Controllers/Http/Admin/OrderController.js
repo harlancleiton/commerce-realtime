@@ -5,6 +5,10 @@
 /** @typedef {import('@adonisjs/framework/src/View')} View */
 /** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
 const Order = use('App/Models/Order')
+/** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
+const Coupon = use('App/Models/Coupon')
+/** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
+const Discount = use('App/Models/Discount')
 const Database = use('Database')
 const Service = use('App/Services/Order/OrderService')
 
@@ -120,6 +124,54 @@ class OrderController {
         .status(400)
         .send({ error: { message: 'Não foi possível excluir o pedido' } })
     }
+  }
+
+  /**
+   * @param {object} ctx
+   * @param {Request} ctx.request
+   * @param {Response} ctx.response
+   */
+  async applyDiscount({ params: { id }, request, response }) {
+    const { code } = request.all()
+    const coupon = await Coupon.findByOrFail('code', code.toUpperCase())
+    const order = await Order.findOrFail(id)
+    const info = {}
+    try {
+      const service = new Service(order)
+      const canAddDiscount = await service.canApplyDiscount(coupon)
+      const orderDiscounts = await order.coupons().getCount()
+      const canApplyToOrder =
+        orderDiscounts < 1 || (orderDiscounts >= 1 && coupon.recursive)
+      if (canAddDiscount && canApplyToOrder) {
+        await Discount.findOrCreate({
+          order_id: order.id,
+          coupon_id: coupon.id
+        })
+        info.message = 'Cupom aplicado com sucesso'
+        info.success = true
+      } else {
+        info.message = 'Não foi possível aplicar esse cupom'
+        info.success = false
+      }
+
+      return response.send({ data: { order, info } })
+    } catch (error) {
+      return response
+        .status(400)
+        .send({ errors: [{ message: 'Não foi possível aplicar o disconto' }] })
+    }
+  }
+
+  /**
+   * @param {object} ctx
+   * @param {Request} ctx.request
+   * @param {Response} ctx.response
+   */
+  async removeDiscount({ request, response }) {
+    const { discount: id } = request.all()
+    const discount = await Discount.findOrFail(id)
+    await discount.delete()
+    return response.status(204).send()
   }
 }
 
