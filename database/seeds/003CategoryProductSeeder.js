@@ -23,6 +23,7 @@ class CategoryProductSeeder {
         )
         await Promise.all(
           products.map(
+            // eslint-disable-next-line no-return-await
             async product => await product.categories().attach([category.id])
           )
         )

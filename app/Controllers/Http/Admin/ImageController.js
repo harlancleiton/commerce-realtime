@@ -18,11 +18,10 @@ class ImageController {
    * GET images
    *
    * @param {object} ctx
-   * @param {Request} ctx.request
    * @param {Response} ctx.response
    * @param {Object} ctx.pagination
    */
-  async index({ request, response, pagination }) {
+  async index({ response, pagination }) {
     const images = await Image.query()
       .ordrBy('id', 'DESC')
       .paginate(pagination.page, pagination.limit)
@@ -52,12 +51,12 @@ class ImageController {
           })
           images.push(image)
           return response.status(201).send({ success: images, errors: {} })
-        } else
-          return response.status(400).send({
-            error: { message: 'Não foi possível enviar a imagem no momento' }
-          })
+        }
+        return response.status(400).send({
+          error: { message: 'Não foi possível enviar a imagem no momento' }
+        })
       }
-      let files = await manageMultipleUpload(fileJar)
+      const files = await manageMultipleUpload(fileJar)
       await Promise.all(
         files.successes.map(async file => {
           const image = await Image.create({
@@ -84,10 +83,9 @@ class ImageController {
    * GET images/:id
    *
    * @param {object} ctx
-   * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async show({ params, request, response }) {
+  async show({ params, response }) {
     const { id } = params
     const image = await Image.findOrFail(id)
     return response.send({ data: image })
@@ -120,16 +118,15 @@ class ImageController {
    * DELETE images/:id
    *
    * @param {object} ctx
-   * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async destroy({ params, request, response }) {
+  async destroy({ params, response }) {
     const { id } = params
     const image = Image.findOrFail(id)
     try {
-      let filepath = Helpers.publicPath(`uploads/${image.path}`)
-      await fs.unlink(filepath, err=>{
-        if(!err) await image.delete()
+      const filepath = Helpers.publicPath(`uploads/${image.path}`)
+      await fs.unlink(filepath, async err => {
+        if (!err) await image.delete()
       })
       return response.status(204).send({})
     } catch (error) {

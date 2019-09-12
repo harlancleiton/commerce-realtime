@@ -10,9 +10,9 @@ class PasswordReset extends Model {
 
     this.addHook('beforeCreate', async passwordResetInstance => {
       passwordResetInstance.token = await generateHash(25)
-      const expires_at = new Date()
-      expires_at.setMinutes(expires_at.getMinutes() + 30)
-      model.expires_at = expires_at
+      const expiresAt = new Date()
+      expiresAt.setMinutes(expiresAt.getMinutes() + 30)
+      passwordResetInstance.expires_at = expiresAt
     })
   }
 

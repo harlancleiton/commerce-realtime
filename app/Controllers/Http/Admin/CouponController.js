@@ -81,10 +81,9 @@ class CouponController {
    * GET coupons/:id
    *
    * @param {object} ctx
-   * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async show({ params, request, response }) {
+  async show({ params, response }) {
     const { id } = params
     const coupon = await Coupon.findOrFail(id)
     return response.send({ data: coupon })
@@ -145,10 +144,9 @@ class CouponController {
    * DELETE coupons/:id
    *
    * @param {object} ctx
-   * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async destroy({ params, request, response }) {
+  async destroy({ params, response }) {
     const { id } = params
     const trx = await Database.beginTransaction()
     const coupon = await Coupon.findOrFail(id)

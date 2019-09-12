@@ -40,7 +40,7 @@ class OrderController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async store({ request, response }) {}
+  // async store({ request, response }) {}
 
   /**
    * Display a single order.
@@ -64,7 +64,7 @@ class OrderController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async update({ params, request, response }) {}
+  // async update({ params, request, response }) {}
 
   /**
    * Delete a order with id.
@@ -77,8 +77,8 @@ class OrderController {
     const order = await Order.findOrFail(id)
     const trx = Database.beginTransaction()
     try {
-      await orders.items().delete(trx)
-      await orders.coupons().delete(trx)
+      await order.items().delete(trx)
+      await order.coupons().delete(trx)
       await trx.commit()
       return response.status(204).send({})
     } catch (error) {

@@ -95,7 +95,7 @@ class UserController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async destroy({ params, request, response }) {
+  async destroy({ params, response }) {
     const { id } = params
     const user = await User.findOrFail(id)
     try {

@@ -17,6 +17,7 @@ OrderHook.updateValues = async modelInstance => {
 }
 
 OrderHook.updateCollectionValues = async modelsInstance => {
+  // eslint-disable-next-line no-restricted-syntax
   for (let modelInstance of modelsInstance) {
     modelInstance = await OrderHook.updateValues(modelInstance)
   }

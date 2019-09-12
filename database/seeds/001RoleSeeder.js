@@ -10,8 +10,6 @@
 |
 */
 
-/** @type {import('@adonisjs/lucid/src/Factory')} */
-const Factory = use('Factory')
 /** @type {import('adonis-acl/src/Models/Role')} */
 const Role = use('Role')
 

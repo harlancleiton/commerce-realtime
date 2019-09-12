@@ -3,7 +3,7 @@
 /** @typedef {import('@adonisjs/framework/src/Request')} Request */
 /** @typedef {import('@adonisjs/framework/src/Response')} Response */
 /** @typedef {import('@adonisjs/auth/src/Schemes/Session')} AuthSession */
-/** @type {typeof import('@adonisjs/lucid/src/Database')}*/
+/** @type {typeof import('@adonisjs/lucid/src/Database')} */
 const Database = use('Database')
 /** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
 const User = use('User')
@@ -79,21 +79,21 @@ class AuthController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async forgot({ request, response }) {}
+  // async forgot({ request, response }) {}
 
   /**
    * @param {object} ctx
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async remember({ request, response }) {}
+  // async remember({ request, response }) {}
 
   /**
    * @param {object} ctx
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async reset({ request, response }) {}
+  // async reset({ request, response }) {}
 }
 
 module.exports = AuthController

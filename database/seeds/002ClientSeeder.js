@@ -22,6 +22,7 @@ class ClientSeeder {
     const clientRole = await Role.findBy('slug', 'client')
     const clients = await Factory.model('App/Models/User').createMany(30)
     await Promise.all(
+      // eslint-disable-next-line no-return-await
       clients.map(async client => await client.roles().attach([clientRole.id]))
     )
     const admin = await User.create({

@@ -57,10 +57,9 @@ class CategoryController {
    * GET categories/:id
    *
    * @param {object} ctx
-   * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async show({ params, request, response }) {
+  async show({ params, response }) {
     const { id } = params
     const category = await Category.findOrFail(id)
     return response.send({ data: category })
@@ -92,10 +91,9 @@ class CategoryController {
    * DELETE categories/:id
    *
    * @param {object} ctx
-   * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async destroy({ params, request, response }) {
+  async destroy({ params, response }) {
     const { id } = params
     const category = await Category.findOrFail(id)
     await category.delete()

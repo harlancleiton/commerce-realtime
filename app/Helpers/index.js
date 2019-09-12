@@ -29,9 +29,9 @@ const generateHash = async (length = 10) => {
  * @return {FileJar}
  */
 const manageSingleUpload = async (file, path = null) => {
-  path = path ? path : Helpers.publicPath('uploads')
+  path = path || Helpers.publicPath('uploads')
   const randomName = await generateHash(30)
-  let fileName = `${Date.now()}-${randomName}.${file.subtype}`
+  const fileName = `${Date.now()}-${randomName}.${file.subtype}`
   await file.move(path, { name: fileName })
   return file
 }
@@ -43,14 +43,14 @@ const manageSingleUpload = async (file, path = null) => {
  * @return {Object}
  */
 const manageMultipleUpload = async (fileJar, path = null) => {
-  path = path ? path : Helpers.publicPath('uploads')
-  let successes = []
-  let errors = []
+  path = path || Helpers.publicPath('uploads')
+  const successes = []
+  const errors = []
   await Promise.all(
     fileJar.files.map(async file => {
-      //TODO file = await generateSingleUpload
+      // TODO file = await generateSingleUpload
       const randomName = await generateHash(30)
-      let fileName = `${Date.now()}-${randomName}.${file.subtype}`
+      const fileName = `${Date.now()}-${randomName}.${file.subtype}`
       await file.move(path, { name: fileName })
       if (file.moved()) successes.push(file)
       else errors.push(file)

@@ -20,7 +20,7 @@ class CouponService {
     await this.model.orders().sync(orders, null, this.trx)
   }
 
-  async syncOrders(products) {
+  async syncProducts(products) {
     if (!Array.isArray(products)) {
       return false
     }

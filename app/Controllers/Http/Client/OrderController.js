@@ -16,8 +16,7 @@ class OrderController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async index({ request, response }) {}
-
+  // async index({ request, response }) {}
   /**
    * Create/save a new order.
    * POST orders
@@ -26,8 +25,7 @@ class OrderController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async store({ request, response }) {}
-
+  // async store({ request, response }) {}
   /**
    * Update order details.
    * PUT or PATCH orders/:id
@@ -36,8 +34,7 @@ class OrderController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async update({ params, request, response }) {}
-
+  // async update({ params, request, response }) {}
   /**
    * Delete a order with id.
    * DELETE orders/:id
@@ -46,7 +43,7 @@ class OrderController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async destroy({ params, request, response }) {}
+  // async destroy({ params, request, response }) {}
 }
 
 module.exports = OrderController
