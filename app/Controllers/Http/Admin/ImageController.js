@@ -23,7 +23,7 @@ class ImageController {
    */
   async index({ response, pagination }) {
     const images = await Image.query()
-      .ordrBy('id', 'DESC')
+      .orderBy('id', 'DESC')
       .paginate(pagination.page, pagination.limit)
     return response.send({ data: images })
   }
@@ -125,9 +125,7 @@ class ImageController {
     const image = Image.findOrFail(id)
     try {
       const filepath = Helpers.publicPath(`uploads/${image.path}`)
-      await fs.unlink(filepath, async err => {
-        if (!err) await image.delete()
-      })
+      fs.unlinkSync(filepath)
       return response.status(204).send({})
     } catch (error) {
       return response

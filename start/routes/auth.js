@@ -11,7 +11,7 @@ Route.group(() => {
   Route.post('login', 'AuthController.login')
     .as('auth.login')
     .middleware(['guest'])
-    .validator('Auth/Login')
+    .validator('Auth/Auth')
   Route.post('refresh', 'AuthController.refresh')
     .as('auth.refresh')
     .middleware(['guest'])

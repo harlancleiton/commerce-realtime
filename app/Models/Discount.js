@@ -9,7 +9,7 @@ class Discount extends Model {
 
     this.addHook('beforeSave', 'DiscountHook.calculateValues')
     this.addHook('afterSave', 'DiscountHook.decrementCoupons')
-    this.addHook('deleteAftet', 'DiscountHook.incrementCoupons')
+    this.addHook('afterDelete', 'DiscountHook.incrementCoupons')
   }
 
   static get table() {
