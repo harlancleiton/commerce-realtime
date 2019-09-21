@@ -5,6 +5,7 @@
 /** @typedef {import('@adonisjs/framework/src/View')} View */
 /** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
 const Image = use('App/Models/Image')
+const Transformer = use('App/Transformers/Admin/ImageTransformer')
 const { manageSingleUpload, manageMultipleUpload } = use('App/Helpers')
 const Helpers = use('Helpers')
 const fs = use('fs')
@@ -21,10 +22,11 @@ class ImageController {
    * @param {Response} ctx.response
    * @param {Object} ctx.pagination
    */
-  async index({ response, pagination }) {
-    const images = await Image.query()
+  async index({ response, pagination, transform }) {
+    let images = await Image.query()
       .orderBy('id', 'DESC')
       .paginate(pagination.page, pagination.limit)
+    images = await transform.paginate(images, Transformer)
     return response.send({ data: images })
   }
 
@@ -36,7 +38,7 @@ class ImageController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async store({ request, response }) {
+  async store({ request, response, transform }) {
     try {
       const fileJar = request.file('images', { types: ['image'], size: '3mb' })
       const images = []
@@ -49,7 +51,8 @@ class ImageController {
             original_name: file.clientName,
             extension: file.subtype
           })
-          images.push(image)
+          const transformedImage = await transform.item(image, Transformer)
+          images.push(transformedImage)
           return response.status(201).send({ success: images, errors: {} })
         }
         return response.status(400).send({
@@ -65,7 +68,8 @@ class ImageController {
             original_name: file.clientName,
             extension: file.subtype
           })
-          images.push(image)
+          const transformedImage = await transform.item(image, Transformer)
+          images.push(transformedImage)
         })
       )
       return response
@@ -85,9 +89,10 @@ class ImageController {
    * @param {object} ctx
    * @param {Response} ctx.response
    */
-  async show({ params, response }) {
+  async show({ params, response, transform }) {
     const { id } = params
-    const image = await Image.findOrFail(id)
+    let image = await Image.findOrFail(id)
+    image = await transform.item(image, transform)
     return response.send({ data: image })
   }
 
@@ -99,12 +104,13 @@ class ImageController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async update({ params, request, response }) {
+  async update({ params, request, response, transform }) {
     const { id } = params
-    const image = await Image.findOrFail(id)
+    let image = await Image.findOrFail(id)
     try {
       image.merge(request.only(['original_name']))
       await image.save()
+      image = await transform.item(image, transform)
       return response.status(200).send({ data: image })
     } catch (error) {
       return response

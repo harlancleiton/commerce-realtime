@@ -21,6 +21,7 @@
     "no-param-reassign": "off",
     "consistent-return": "off",
     "no-multi-assign": "off",
-    "no-await-in-loop": "off"
+    "no-await-in-loop": "off",
+    "camelcase": "off"
   }
 }

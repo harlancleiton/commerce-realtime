@@ -5,6 +5,7 @@
 /** @typedef {import('@adonisjs/framework/src/View')} View */
 /** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
 const Category = use('App/Models/Category')
+const Transformer = use('App/Transformers/Admin/CategoryTransformer')
 
 /**
  * Resourceful controller for interacting with categories
@@ -19,12 +20,13 @@ class CategoryController {
    * @param {Response} ctx.response
    * @param {Object} ctx.pagination
    */
-  async index({ request, response, pagination }) {
+  async index({ request, response, pagination, transform }) {
     const title = request.input('title')
     const query = Category.query()
     // ILIKI, postgres case sensitive
     if (title) query.where('title', 'ILIKE', `%${title}%`)
-    const categories = await query.paginate(pagination.page, pagination.limit)
+    let categories = await query.paginate(pagination.page, pagination.limit)
+    categories = await transform.paginate(categories, Transformer)
     return response.send({ data: categories })
   }
 
@@ -36,14 +38,15 @@ class CategoryController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async store({ request, response }) {
+  async store({ request, response, transform }) {
     const { title, description, image } = request.all()
     try {
-      const category = await Category.create({
+      let category = await Category.create({
         title,
         description,
         image_id: image
       })
+      category = await transform.item(category)
       return response.status(201).send({ data: category })
     } catch (error) {
       return response
