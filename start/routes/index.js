@@ -13,6 +13,9 @@
 |
 */
 
+/** @type {typeof import('@adonisjs/framework/src/Route/Manager')} */
+const Route = use('Route')
+
 /**
  * Auth Routes
  */
@@ -27,3 +30,11 @@ require('./admin')
  * Client Routes
  */
 require('./client')
+
+/**
+ * Return current user
+ */
+
+Route.get('v1/me', 'UserController.me')
+  .as('me')
+  .middleware('auth')
