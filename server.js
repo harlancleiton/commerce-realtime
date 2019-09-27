@@ -19,7 +19,9 @@
 
 const { Ignitor } = require('@adonisjs/ignitor')
 
+// eslint-disable-next-line global-require
 new Ignitor(require('@adonisjs/fold'))
   .appRoot(__dirname)
+  .wsServer()
   .fireHttpServer()
   .catch(console.error)
