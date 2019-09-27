@@ -34,7 +34,7 @@ class OrderController {
       query.orWhere('id', 'LIKE', `%${id}%`)
     } else if (status) query.where('status', status)
     else if (id) query.where('id', 'LIKE', `%${id}%`)
-    let orders = query.paginate(pagination.page, pagination.limit)
+    let orders = await query.paginate(pagination.page, pagination.limit)
     orders = await transform.paginate(orders, Transformer)
     return response.status(200).send({ data: orders })
   }
@@ -55,7 +55,8 @@ class OrderController {
       const service = new Service(order, trx)
       if (items && items.length > 0) await service.syncItems(items)
       await trx.commit()
-      order = await transform.item(order, Transformer)
+      order = await Order.find(order.id)
+      order = await transform.include('user,items').item(order, Transformer)
       return response.status(201).send({ data: order })
     } catch (error) {
       trx.rollback()

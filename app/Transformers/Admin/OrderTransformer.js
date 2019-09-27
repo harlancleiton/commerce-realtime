@@ -13,7 +13,7 @@ const DiscountTransformer = use('App/Transformers/Admin/DiscountTransformer')
  * @constructor
  */
 class OrderTransformer extends BumblebeeTransformer {
-  availableInclude() {
+  static get availableInclude() {
     return ['user', 'coupons', 'items', 'discounts']
   }
 
@@ -27,8 +27,10 @@ class OrderTransformer extends BumblebeeTransformer {
       status: order.status,
       total: order.total ? parseFloat(order.total.toFixed(2)) : 0,
       date: order.created_at,
-      quantity:
-        order.__meta__ && order.__meta__.quantity ? order.__meta__.quantity : 0,
+      quantity_items:
+        order.__meta__ && order.__meta__.quantity_items
+          ? order.__meta__.quantity_items
+          : 0,
       discount:
         order.__meta__ && order.__meta__.discount ? order.__meta__.discount : 0,
       subtotal:
@@ -37,19 +39,19 @@ class OrderTransformer extends BumblebeeTransformer {
   }
 
   includeUser(model) {
-    return this.item(model.getRelated('user', UserTransformer))
+    return this.item(model.getRelated('user'), UserTransformer)
   }
 
   includeItems(model) {
-    return this.item(model.getRelated('items', OrderItemTransformer))
+    return this.collection(model.getRelated('items'), OrderItemTransformer)
   }
 
   includeDiscounts(model) {
-    return this.item(model.getRelated('items', DiscountTransformer))
+    return this.collection(model.getRelated('items'), DiscountTransformer)
   }
 
   includeCoupons(model) {
-    return this.item(model.getRelated('coupons', CouponTransformer))
+    return this.collection(model.getRelated('coupons'), CouponTransformer)
   }
 }
 

@@ -10,7 +10,7 @@ const CouponTransformer = use('App/Transformers/Admin/CouponTransformer')
  * @constructor
  */
 class DiscountTransformer extends BumblebeeTransformer {
-  defaultInclude() {
+  static get defaultInclude() {
     return ['coupon']
   }
 
@@ -25,7 +25,7 @@ class DiscountTransformer extends BumblebeeTransformer {
   }
 
   includeCoupon(model) {
-    return this.item(model.getRelated('coupon', CouponTransformer))
+    return this.item(model.getRelated('coupon'), CouponTransformer)
   }
 }
 

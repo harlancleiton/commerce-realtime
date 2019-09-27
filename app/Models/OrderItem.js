@@ -9,7 +9,7 @@ class OrderItem extends Model {
     this.addHook('beforeSave', 'OrderItemHook.updateSubtotal')
   }
 
-  products() {
+  product() {
     return this.belongsTo('App/Models/Product')
   }
 

@@ -12,7 +12,13 @@ class OrderItemSchema extends Schema {
         .foreign('product_id')
         .references('id')
         .inTable('products')
-        .onDelete('CASCADE')
+        .onDelete('cascade')
+      table.integer('order_id').unsigned()
+      table
+        .foreign('order_id')
+        .references('id')
+        .inTable('orders')
+        .onDelete('cascade')
       table
         .integer('quantity')
         .unsigned()
