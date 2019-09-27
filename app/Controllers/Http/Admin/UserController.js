@@ -5,6 +5,7 @@
 /** @typedef {import('@adonisjs/framework/src/View')} View */
 /** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
 const User = use('App/Models/User')
+const Transformer = use('App/Transformers/Admin/UserTransformer')
 
 /**
  * Resourceful controller for interacting with users
@@ -19,7 +20,7 @@ class UserController {
    * @param {Response} ctx.response
    * @param {Object} ctx.pagination
    */
-  async index({ request, response, pagination }) {
+  async index({ request, response, pagination, transform }) {
     const { name } = request.all()
     const query = User.query()
     if (name) {
@@ -27,7 +28,8 @@ class UserController {
       query.orWhere('surname', 'ILIKE', `%${name}%`)
       query.orWhere('email', 'ILIKE', `%${name}%`)
     }
-    const users = await query.paginate(pagination.page, pagination.limit)
+    let users = await query.paginate(pagination.page, pagination.limit)
+    users = await transform.paginate(users, Transformer)
     return response.send({ data: users })
   }
 
@@ -39,15 +41,16 @@ class UserController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async store({ request, response }) {
+  async store({ request, response, transform }) {
     const { name, surname, email, password, image } = request.all()
-    const user = await User.create({
+    let user = await User.create({
       name,
       surname,
       email,
       password,
       image_id: image
     })
+    user = await transform.item(user, Transformer)
     return response.status(201).send({ data: user })
   }
 
@@ -58,9 +61,10 @@ class UserController {
    * @param {object} ctx
    * @param {Response} ctx.response
    */
-  async show({ params, response }) {
+  async show({ params, response, transform }) {
     const { id } = params
-    const user = await User.findOrFail(id)
+    let user = await User.findOrFail(id)
+    user = await transform.item(user, Transformer)
     return response.send({ data: user })
   }
 
@@ -72,9 +76,9 @@ class UserController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async update({ params, request, response }) {
+  async update({ params, request, response, transform }) {
     const { id } = params
-    const user = await User.findOrFail(id)
+    let user = await User.findOrFail(id)
     const { name, surname, email, password, image } = request.all()
     user.merge({
       name,
@@ -84,6 +88,7 @@ class UserController {
       image_id: image
     })
     await user.save()
+    user = await transform.item(user, Transformer)
     return response.send({ data: user })
   }
 
