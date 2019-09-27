@@ -9,6 +9,7 @@ const Database = use('Database')
 const User = use('User')
 /** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
 const Role = use('Role')
+const Ws = use('Ws')
 
 /**
  * Resourceful controller for interacting with auths
@@ -27,6 +28,8 @@ class AuthController {
       const userRole = await Role.findBy('slug', 'client')
       await user.roles().attach([userRole.id], null, trx)
       await trx.commit()
+      const topic = Ws.getChannel('notifications').topic('notifications')
+      if (topic) topic.broadcast('new:user')
       return response.status(201).json({ data: user })
     } catch (error) {
       await trx.rollback()
