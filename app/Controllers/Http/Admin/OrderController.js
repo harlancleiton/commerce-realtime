@@ -77,7 +77,9 @@ class OrderController {
   async show({ params, response, transform }) {
     const { id } = params
     let order = await Order.findOrFail(id)
-    order = await transform.item(order, Transformer)
+    order = await transform
+      .include('items,user,discounts')
+      .item(order, Transformer)
     return response.send({ data: order })
   }
 
@@ -99,7 +101,9 @@ class OrderController {
       await service.updateItems(items)
       await order.save(trx)
       await trx.commit()
-      order = await transform.item(order, Transformer)
+      order = await transform
+        .include('items,user,discounts')
+        .item(order, Transformer)
       return response.send({ data: order })
     } catch (error) {
       trx.rollback()
@@ -137,10 +141,10 @@ class OrderController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async applyDiscount({ params: { id }, request, response }) {
+  async applyDiscount({ params: { id }, request, response, transform }) {
     const { code } = request.all()
     const coupon = await Coupon.findByOrFail('code', code.toUpperCase())
-    const order = await Order.findOrFail(id)
+    let order = await Order.findOrFail(id)
     const info = {}
     try {
       const service = new Service(order)
@@ -159,7 +163,9 @@ class OrderController {
         info.message = 'Não foi possível aplicar esse cupom'
         info.success = false
       }
-
+      order = await transform
+        .include('items,user,discounts,coupons')
+        .item(order, Transformer)
       return response.send({ data: { order, info } })
     } catch (error) {
       return response
