@@ -11,6 +11,7 @@ const Coupon = use('App/Models/Coupon')
 const Discount = use('App/Models/Discount')
 const Database = use('Database')
 const Service = use('App/Services/Order/OrderService')
+const Transformer = use('App/Transformers/Admin/OrderTransformer')
 
 /**
  * Resourceful controller for interacting with orders
@@ -25,7 +26,7 @@ class OrderController {
    * @param {Response} ctx.response
    * @param {Object} ctx.pagination
    */
-  async index({ request, response, pagination }) {
+  async index({ request, response, pagination, transform }) {
     const { status, id } = request.all()
     const query = Order.query()
     if (status && id) {
@@ -33,7 +34,8 @@ class OrderController {
       query.orWhere('id', 'LIKE', `%${id}%`)
     } else if (status) query.where('status', status)
     else if (id) query.where('id', 'LIKE', `%${id}%`)
-    const orders = query.paginate(pagination.page, pagination.limit)
+    let orders = query.paginate(pagination.page, pagination.limit)
+    orders = await transform.paginate(orders, Transformer)
     return response.status(200).send({ data: orders })
   }
 
@@ -45,14 +47,15 @@ class OrderController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async store({ request, response }) {
+  async store({ request, response, transform }) {
     const trx = await Database.beginTransaction()
     try {
       const { user, items, status } = request.all()
-      const order = await Order.create({ user_id: user, status }, trx)
+      let order = await Order.create({ user_id: user, status }, trx)
       const service = new Service(order, trx)
       if (items && items.length > 0) await service.syncItems(items)
       await trx.commit()
+      order = await transform.item(order, Transformer)
       return response.status(201).send({ data: order })
     } catch (error) {
       trx.rollback()
@@ -70,9 +73,10 @@ class OrderController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async show({ params, response }) {
+  async show({ params, response, transform }) {
     const { id } = params
-    const order = await Order.findOrFail(id)
+    let order = await Order.findOrFail(id)
+    order = await transform.item(order, Transformer)
     return response.send({ data: order })
   }
 
@@ -84,9 +88,9 @@ class OrderController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async update({ params: { id }, request, response }) {
-    const order = Order.findOrFail(id)
-    const trx = Database.beginTransaction()
+  async update({ params: { id }, request, response, transform }) {
+    let order = await Order.findOrFail(id)
+    const trx = await Database.beginTransaction()
     try {
       const { user, items, status } = request.all()
       order.merge({ user_id: user, items, status })
@@ -94,6 +98,7 @@ class OrderController {
       await service.updateItems(items)
       await order.save(trx)
       await trx.commit()
+      order = await transform.item(order, Transformer)
       return response.send({ data: order })
     } catch (error) {
       trx.rollback()

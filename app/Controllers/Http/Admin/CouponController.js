@@ -7,6 +7,7 @@
 const Coupon = use('App/Models/Coupon')
 const Database = use('Database')
 const Service = use('App/Services/Coupon/CouponService')
+const Transformer = use('App/Transformers/Admin/CouponTransformer')
 
 /**
  * Resourceful controller for interacting with coupons
@@ -21,11 +22,12 @@ class CouponController {
    * @param {Response} ctx.response
    * @param {Object} ctx.pagination
    */
-  async index({ request, response, pagination }) {
+  async index({ request, response, pagination, transform }) {
     const { code } = request.all()
     const query = Coupon.query()
     if (code) query.where('code', 'ILIKE', `%${code}%`)
-    const coupons = await query.paginate(pagination.page, pagination.limit)
+    let coupons = await query.paginate(pagination.page, pagination.limit)
+    coupons = await transform.paginate(coupons, Transformer)
     return response.send({ data: coupons })
   }
 
@@ -37,7 +39,7 @@ class CouponController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async store({ request, response }) {
+  async store({ request, response, transform }) {
     const canUseFor = { client: false, product: false }
     const trx = await Database.beginTransaction()
     try {
@@ -50,7 +52,7 @@ class CouponController {
         'quantity',
         'recursive'
       ])
-      const coupon = await Coupon.create(data, trx)
+      let coupon = await Coupon.create(data, trx)
       const { users, products } = request.only(['users', 'products'])
       const service = new Service(coupon, trx)
       if (users && users.length > 0) {
@@ -67,11 +69,13 @@ class CouponController {
       else if (canUseFor.product) coupon.can_use_for = 'PRODUCT'
       else coupon.can_use_for = 'ALL'
       await coupon.save(trx)
+      await trx.commit()
+      coupon = await transform.item(coupon, Transformer)
       return response.status(201).send({ data: coupon })
     } catch (error) {
       await trx.rollback()
-      return response.status(400).send({
-        error: { message: 'Não foi possível criar o cupon de desconto' }
+      return response.status(500).send({
+        errors: [{ message: 'Não foi possível criar o cupon de desconto' }]
       })
     }
   }
@@ -83,9 +87,10 @@ class CouponController {
    * @param {object} ctx
    * @param {Response} ctx.response
    */
-  async show({ params, response }) {
+  async show({ params, response, transform }) {
     const { id } = params
-    const coupon = await Coupon.findOrFail(id)
+    let coupon = await Coupon.findOrFail(id)
+    coupon = await transform.item(coupon, Transformer)
     return response.send({ data: coupon })
   }
 
@@ -97,10 +102,10 @@ class CouponController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async update({ params, request, response }) {
+  async update({ params, request, response, transform }) {
     const { id } = params
     const trx = await Database.beginTransaction()
-    const coupon = await Coupon.findOrFail(id)
+    let coupon = await Coupon.findOrFail(id)
     const canUseFor = { client: false, product: false }
     try {
       const data = request.only([
@@ -130,11 +135,12 @@ class CouponController {
       else coupon.can_use_for = 'ALL'
       await coupon.save(trx)
       await trx.commit()
+      coupon = await transform.item(coupon, Transformer)
       return response.status(200).send({ data: coupon })
     } catch (error) {
       await trx.rollback()
       return response.status(400).send({
-        error: { message: 'Não foi possível atualizar o cupon de desconto' }
+        errors: [{ message: 'Não foi possível atualizar o cupon de desconto' }]
       })
     }
   }
@@ -161,7 +167,7 @@ class CouponController {
       await trx.rollback()
       return response
         .status(500)
-        .send({ error: { message: 'Não foi possível excluir o coupon' } })
+        .send({ errors: [{ message: 'Não foi possível excluir o coupon' }] })
     }
   }
 }
